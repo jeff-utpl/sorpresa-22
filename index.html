@@ -23,7 +23,6 @@
       border: 1px solid rgba(255,255,255,0.3);
       max-width: 90%;
     }
-    /* Estilo del contador actualizado */
     #countdown { 
       font-size: 2.5em; 
       font-weight: bold; 
@@ -98,7 +97,6 @@
     .event {
       background: rgba(255, 255, 255, 0.65);
       backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.4);
       border-radius: 20px; padding: 25px;
       margin: 30px 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);
@@ -117,7 +115,7 @@
       backdrop-filter: blur(5px); padding: 10px; border-radius: 15px; touch-action: none;
       box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     }
-    .piece { width: 100px; height: 100px; background-size: 400px 400px; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; }
+    .piece { width: 100px; height: 100px; background-size: 400px 400px; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; cursor: pointer; }
     .piece.selected { outline: 4px solid #fff; transform: scale(1.05); z-index: 5; box-shadow: 0 0 20px rgba(0,0,0,0.2); }
 
     #message {
@@ -189,9 +187,8 @@
       <div class="event">
         <div class="year">22-04-2026</div>
         <img src="lloa.jpeg" alt="lloa">
-        <div class="phrase">Y hoy mi amor.... Hoy cumples 30 años mi reina hermosa y quiero desearte el mejor de los cumpleaños mi vida. Que Dios
-        siempre te cuide mi vida. Gracias por compartir tanto tiempo a mi lado mi amor. Espero que sigas siendo esa mujer maravillosa que eres, delicada,
-        preciosa y muy inteligente. Hoy más que nunca te ves hermosa mi cumpleañera.</div>
+        <div class="phrase">Y hoy mi amor.... Hoy cumples 30 años mi reina hermosa y quiero desearte el mejor de los cumpleaños mi vida. Que Dios siempre te cuide mi vida. Gracias por compartir tanto tiempo a mi lado mi amor. Espero que sigas siendo esa mujer maravillosa que eres, delicada, preciosa y muy inteligente. Hoy más que nunca te ves hermosa mi cumpleañera.</div>
+      </div>
     </div>
 
     <h2>Arma el rompecabezas para recibir tu regalo...</h2>
@@ -200,8 +197,8 @@
   </div>
 
   <script>
-    // FECHA OBJETIVO: 22 de Abril a las 8:00 AM
-    const fechaObjetivo = new Date('April 20, 2026 00:04:00').getTime();
+    // --- CONFIGURACIÓN DE FECHA ---
+    const fechaObjetivo = new Date('April 20, 2026 00:00:00').getTime();
 
     function updateLock() {
       const ahora = new Date().getTime();
@@ -216,16 +213,13 @@
         return true;
       }
 
-      // Cálculo de días, horas, minutos y segundos
       const dias = Math.floor(distancia / (1000 * 60 * 60 * 24));
       const horas = Math.floor((distancia % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
       const minutos = Math.floor((distancia % (1000 * 60 * 60)) / (1000 * 60));
       const segundos = Math.floor((distancia % (1000 * 60)) / 1000);
       
-      // Mostrar con formato de días incluido
       document.getElementById('countdown').innerHTML = 
-        dias + "d " + 
-        (horas < 10 ? "0"+horas : horas) + "h " + 
+        dias + "d " + (horas < 10 ? "0"+horas : horas) + "h " + 
         (minutos < 10 ? "0"+minutos : minutos) + "m " + 
         (segundos < 10 ? "0"+segundos : segundos) + "s";
       return false;
@@ -234,6 +228,7 @@
     const lockInterval = setInterval(() => { if (updateLock()) clearInterval(lockInterval); }, 1000);
     updateLock();
 
+    // --- EFECTO DE ESCRITURA ---
     const fullText = "🎉 ¡Feliz Cumpleaños! Mi Princesa Hermosa 🎂";
     let charIndex = 0;
     const titleElement = document.getElementById("main-title");
@@ -251,6 +246,7 @@
       if(titleElement.textContent === "") { typeEffect(); confettiBurst(); }
     }
 
+    // --- CONFETTI ---
     function createConfetti(x, y, isBurst = false) {
       const colors = ['#ffffff', '#ff6b6b', '#feca57', '#54a0ff'];
       const confetti = document.createElement('div');
@@ -278,6 +274,7 @@
 
     setInterval(() => { if(document.getElementById('main-content').style.display === 'block') createConfetti(0,0,false); }, 300);
 
+    // --- ROMPECABEZAS (LÓGICA CORREGIDA) ---
     const puzzle = document.getElementById('puzzle');
     const imageURL = "sushi.webp"; 
     let firstSelected = null;
@@ -297,26 +294,40 @@
     puzzle.addEventListener('click', (e) => {
       const clickedPiece = e.target;
       if (!clickedPiece.classList.contains('piece')) return;
+
       if (!firstSelected) {
-        firstSelected = clickedPiece; firstSelected.classList.add('selected');
+        firstSelected = clickedPiece; 
+        firstSelected.classList.add('selected');
       } else {
-        const allPieces = [...puzzle.children];
-        const idx1 = allPieces.indexOf(firstSelected);
-        const idx2 = allPieces.indexOf(clickedPiece);
-        if (idx1 < idx2) { puzzle.insertBefore(firstSelected, clickedPiece.nextSibling); puzzle.insertBefore(clickedPiece, allPieces[idx1]); }
-        else { puzzle.insertBefore(clickedPiece, firstSelected.nextSibling); puzzle.insertBefore(firstSelected, allPieces[idx2]); }
-        firstSelected.classList.remove('selected'); firstSelected = null;
-        checkWin();
+        if (firstSelected === clickedPiece) {
+          firstSelected.classList.remove('selected');
+          firstSelected = null;
+          return;
+        }
+
+        // SWAP SEGURO CON NODO TEMPORAL
+        const temp = document.createElement('div');
+        puzzle.insertBefore(temp, firstSelected);
+        puzzle.insertBefore(firstSelected, clickedPiece);
+        puzzle.insertBefore(clickedPiece, temp);
+        temp.remove();
+
+        firstSelected.classList.remove('selected');
+        firstSelected = null;
+        setTimeout(checkWin, 200);
       }
     });
 
     function checkWin() {
-      if ([...puzzle.children].every((p, i) => p.dataset.index == i)) {
+      const currentOrder = [...puzzle.children].map(p => parseInt(p.dataset.index));
+      if (currentOrder.every((val, index) => val === index)) {
         document.getElementById('message').style.display = "block";
+        puzzle.style.pointerEvents = "none";
         for(let i = 0; i < 5; i++) setTimeout(confettiBurst, i * 500);
       }
     }
 
+    // --- SCROLL EFFECTS ---
     window.addEventListener('scroll', () => {
       document.querySelectorAll('.event').forEach(ev => {
         if (ev.getBoundingClientRect().top < window.innerHeight - 100) ev.classList.add('visible');
